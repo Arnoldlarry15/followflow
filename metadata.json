@@ -1,0 +1,6 @@
+{
+  "name": "FollowFlow",
+  "description": "An AI-powered follow-up and lead management assistant for small businesses.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
