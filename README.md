@@ -172,4 +172,4 @@ MIT
 ---
 
 **Built for small businesses, creators, and entrepreneurs.**  
-*FollowFlow — Relationships over complexity.*
+*FollowFlow — Building relationships not complexity.*
