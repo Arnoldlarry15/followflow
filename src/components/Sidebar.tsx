@@ -1,4 +1,4 @@
-import { LayoutDashboard, Inbox, Kanban, Settings, Users, FileText } from 'lucide-react';
+import { Inbox, Kanban, Users, FileText } from 'lucide-react';
 import { ViewMode } from '../types';
 import { cn } from '../utils';
 
@@ -11,10 +11,11 @@ export default function Sidebar({ currentView, onViewChange }: SidebarProps) {
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen overflow-y-auto">
       <div className="p-6 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold italic">
-          F
-        </div>
-        <span className="font-bold text-xl tracking-tight text-gray-900">FollowFlow</span>
+        <img
+          src="/follow_flow_logo.png"
+          alt="FollowFlow logo"
+          className="h-10 w-auto max-w-[170px] object-contain"
+        />
       </div>
 
       <nav className="flex-1 px-4 py-4 space-y-1 text-sm font-medium">
