@@ -14,13 +14,13 @@ Losing opportunities because of missed follow-ups is even harder.
 
 Many small business owners juggle:
 
-customer messages
-leads
-inquiries
-partnerships
-grant opportunities
-repeat customers
-outreach tasks
+- customer messages
+- leads
+- inquiries
+- partnerships
+- grant opportunities
+- repeat customers
+- outreach tasks
 
 ...across too many apps and tabs.
 
@@ -30,12 +30,12 @@ FollowFlow brings those workflows into one clean, AI-assisted workspace.
 
 With FollowFlow, users can:
 
-Track leads and customer conversations
-Organize follow-up workflows
-Manage opportunities and outreach pipelines
-Monitor grants or partnership opportunities
-Keep customer communication visible and actionable
-Use AI assistance to stay organized and responsive
+- Track leads and customer conversations
+- Organize follow-up workflows
+- Manage opportunities and outreach pipelines
+- Monitor grants or partnership opportunities
+- Keep customer communication visible and actionable
+- Use AI assistance to stay organized and responsive
 
 The goal is simple:
 
@@ -45,13 +45,13 @@ Help people respond faster, stay organized, and build stronger business relation
 
 FollowFlow is designed for:
 
-small businesses
-solo founders
-creators
-freelancers
-local services
-community-driven brands
-online storefront owners
+- small businesses
+- solo founders
+- creators
+- freelancers
+- local services
+- community-driven brands
+- online storefront owners
 
 Especially people who do not have large teams or expensive CRM systems.
 
@@ -61,11 +61,11 @@ FollowFlow uses multiple AI providers behind the scenes to keep the experience f
 
 The system supports:
 
-AI provider switching
-fallback handling
-live provider health monitoring
-local and cloud AI configurations
-real-time readiness indicators
+- AI provider switching
+- fallback handling
+- live provider health monitoring
+- local and cloud AI configurations
+- real-time readiness indicators
 
 Users stay focused on their business while the app manages the AI infrastructure quietly in the background.
 
@@ -75,10 +75,10 @@ The app continuously checks AI provider availability and configuration status.
 
 This helps users quickly identify:
 
-unavailable services
-configuration problems
-connectivity issues
-fallback states
+- unavailable services
+- configuration problems
+- connectivity issues
+- fallback states
 
 without digging through technical settings.
 
@@ -88,11 +88,11 @@ FollowFlow uses a clean operational layout designed to reduce clutter and cognit
 
 Features include:
 
-unified workflow views
-lead and customer management panels
-intelligent side panels
-real-time status indicators
-smooth transitions and responsive interactions
+- unified workflow views
+- lead and customer management panels
+- intelligent side panels
+- real-time status indicators
+- smooth transitions and responsive interactions
 
 The interface is designed to feel approachable for non-technical users while still being powerful underneath.
 
@@ -104,21 +104,21 @@ FollowFlow is built around the idea that AI should reduce stress, improve consis
 
 ## Getting Started
 
-Install dependencies
-Start the development server
-Configure AI providers if desired
-Add leads, customers, or opportunities
-Start managing follow-ups in one place
+1. Install dependencies
+2. Start the development server
+3. Configure AI providers if desired
+4. Add leads, customers, or opportunities
+5. Start managing follow-ups in one place
 
 ## Tech Stack
 
 FollowFlow is built with:
 
-React + TypeScript
-Modern component-based architecture
-Multi-provider AI orchestration
-Real-time provider health monitoring
-Animated and responsive UI interactions
+- React + TypeScript
+- Modern component-based architecture
+- Multi-provider AI orchestration
+- Real-time provider health monitoring
+- Animated and responsive UI interactions
 
 ## Future Vision
 
@@ -126,7 +126,7 @@ FollowFlow is being designed as an intelligent relationship layer for modern onl
 
 The long-term goal is to help businesses:
 
-follow up consistently
-reduce missed opportunities
-stay connected with customers
-grow without overwhelming complexity
+- follow up consistently
+- reduce missed opportunities
+- stay connected with customers
+- grow without overwhelming complexity

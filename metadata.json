@@ -1,6 +1,11 @@
 {
   "name": "FollowFlow",
+  "version": "0.1.0",
   "description": "An AI-powered follow-up and lead management assistant for small businesses.",
+  "author": "Your Name <you@example.com>",
+  "license": "MIT",
+  "repository": "https://github.com/your-org/followflow",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"],
+  "keywords": ["ai", "crm", "follow-up", "leads", "productivity"]
 }
