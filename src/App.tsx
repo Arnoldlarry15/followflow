@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Sidebar from './components/Sidebar';
 import LeadList from './components/LeadList';
@@ -39,6 +39,28 @@ interface ProviderHealthState {
   label: string;
   tone: string;
 }
+
+interface NewContactFormState {
+  name: string;
+  company: string;
+  email: string;
+  phone: string;
+  type: Lead['type'];
+  status: Lead['status'];
+  totalSpend: string;
+  notes: string;
+}
+
+const DEFAULT_NEW_CONTACT: NewContactFormState = {
+  name: '',
+  company: '',
+  email: '',
+  phone: '',
+  type: 'lead',
+  status: 'pending',
+  totalSpend: '',
+  notes: '',
+};
 
 function getProviderHealthState(provider: LLMProvider, status: LlmStatus | null): ProviderHealthState {
   switch (provider) {
@@ -107,10 +129,12 @@ export default function App() {
   const [llmProvider, setLlmProvider] = useState<LLMProvider>('ollama');
   const [llmStatus, setLlmStatus] = useState<LlmStatus | null>(null);
   const [isStatusLoading, setIsStatusLoading] = useState(false);
-  const [leads] = useState<Lead[]>(initialLeads);
-  const [customers] = useState<Customer[]>(initialCustomers);
+  const [leads, setLeads] = useState<Lead[]>(initialLeads);
+  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
   const [grants] = useState<Grant[]>(initialGrants);
   const hasSyncedDefaultProvider = useRef(false);
+  const [isAddLeadOpen, setIsAddLeadOpen] = useState(false);
+  const [newContact, setNewContact] = useState<NewContactFormState>(DEFAULT_NEW_CONTACT);
 
   const refreshLlmStatus = useCallback(async (showLoading = true) => {
     if (showLoading) {
@@ -136,6 +160,69 @@ export default function App() {
       }
     }
   }, []);
+
+  const closeAddLeadModal = useCallback(() => {
+    setIsAddLeadOpen(false);
+    setNewContact(DEFAULT_NEW_CONTACT);
+  }, []);
+
+  const handleAddLeadSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const contactId = `c-${Date.now()}`;
+    const leadId = `l-${Date.now()}`;
+    const spendValue = Number(newContact.totalSpend || 0);
+    const todayIso = new Date().toISOString();
+    const followUpIso = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    const customerName = newContact.name.trim() || 'New Contact';
+    const companyName = newContact.company.trim() || 'New Company';
+
+    setCustomers((current) => [
+      ...current,
+      {
+        id: contactId,
+        name: customerName,
+        company: companyName,
+        email: newContact.email.trim() || 'unknown@example.com',
+        phone: newContact.phone.trim() || '(555) 000-0000',
+        totalSpend: spendValue,
+        lastPurchaseDate: todayIso,
+        status: newContact.status === 'converted' ? 'VIP' : 'active',
+        notes: newContact.notes.trim() || 'Mock entry added from the lead form.',
+      },
+    ]);
+
+    setLeads((current) => [
+      {
+        id: leadId,
+        name: customerName,
+        company: companyName,
+        type: newContact.type,
+        status: newContact.status,
+        lastContactDate: todayIso,
+        nextFollowUpDate: followUpIso,
+        notes: newContact.notes.trim() || 'Mock lead created from the entry form.',
+        aiSuggestion: 'Mock record created. Follow up to verify contact details and next steps.',
+      },
+      ...current,
+    ]);
+
+    setSelectedLead({
+      id: leadId,
+      name: customerName,
+      company: companyName,
+      type: newContact.type,
+      status: newContact.status,
+      lastContactDate: todayIso,
+      nextFollowUpDate: followUpIso,
+      notes: newContact.notes.trim() || 'Mock lead created from the entry form.',
+      aiSuggestion: 'Mock record created. Follow up to verify contact details and next steps.',
+    });
+
+    closeAddLeadModal();
+    setView('inbox');
+  }, [closeAddLeadModal, newContact]);
 
   useEffect(() => {
     void refreshLlmStatus();
@@ -195,8 +282,13 @@ export default function App() {
             >
               {isStatusLoading ? 'Checking...' : providerHealth.label}
             </button>
-            <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors cursor-pointer">+ Add Lead Source</button>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-gray-200 to-gray-300 border border-gray-300"></div>
+            <button
+              onClick={() => setIsAddLeadOpen(true)}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors cursor-pointer"
+            >
+              + Add Lead
+            </button>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-gray-200 to-gray-300 border border-gray-300" title="Profile placeholder" />
           </div>
         </header>
 
@@ -225,6 +317,148 @@ export default function App() {
             </motion.div>
           </AnimatePresence>
         </div>
+
+        <AnimatePresence>
+          {isAddLeadOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-20 bg-black/30 backdrop-blur-sm flex items-center justify-center px-4"
+              onClick={closeAddLeadModal}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96, y: 12 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: 12 }}
+                transition={{ duration: 0.18 }}
+                className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-gray-100 overflow-hidden"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Add Mock Lead</h3>
+                    <p className="text-sm text-gray-500">Create a temporary customer/lead record for testing the UI.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={closeAddLeadModal}
+                    className="h-9 w-9 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+                    aria-label="Close add lead form"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <form onSubmit={handleAddLeadSubmit} className="p-6 space-y-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-gray-700">Name</span>
+                      <input
+                        value={newContact.name}
+                        onChange={(event) => setNewContact((current) => ({ ...current, name: event.target.value }))}
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        placeholder="Taylor Reed"
+                      />
+                    </label>
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-gray-700">Company</span>
+                      <input
+                        value={newContact.company}
+                        onChange={(event) => setNewContact((current) => ({ ...current, company: event.target.value }))}
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        placeholder="Northstar Services"
+                      />
+                    </label>
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-gray-700">Email</span>
+                      <input
+                        type="email"
+                        value={newContact.email}
+                        onChange={(event) => setNewContact((current) => ({ ...current, email: event.target.value }))}
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        placeholder="taylor@northstar.com"
+                      />
+                    </label>
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-gray-700">Phone</span>
+                      <input
+                        value={newContact.phone}
+                        onChange={(event) => setNewContact((current) => ({ ...current, phone: event.target.value }))}
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        placeholder="(555) 222-3344"
+                      />
+                    </label>
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-gray-700">Type</span>
+                      <select
+                        value={newContact.type}
+                        onChange={(event) => setNewContact((current) => ({ ...current, type: event.target.value as Lead['type'] }))}
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
+                      >
+                        <option value="lead">Lead</option>
+                        <option value="customer">Customer</option>
+                        <option value="grant">Grant</option>
+                        <option value="opportunity">Opportunity</option>
+                      </select>
+                    </label>
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-gray-700">Status</span>
+                      <select
+                        value={newContact.status}
+                        onChange={(event) => setNewContact((current) => ({ ...current, status: event.target.value as Lead['status'] }))}
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="active">Active</option>
+                        <option value="overdue">Overdue</option>
+                        <option value="contacted">Contacted</option>
+                        <option value="converted">Converted</option>
+                      </select>
+                    </label>
+                    <label className="space-y-2 md:col-span-2">
+                      <span className="text-sm font-medium text-gray-700">Total Spend (mock customer data)</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={newContact.totalSpend}
+                        onChange={(event) => setNewContact((current) => ({ ...current, totalSpend: event.target.value }))}
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        placeholder="2500"
+                      />
+                    </label>
+                    <label className="space-y-2 md:col-span-2">
+                      <span className="text-sm font-medium text-gray-700">Notes</span>
+                      <textarea
+                        value={newContact.notes}
+                        onChange={(event) => setNewContact((current) => ({ ...current, notes: event.target.value }))}
+                        rows={4}
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 resize-none"
+                        placeholder="Add any mock details you want to test with."
+                      />
+                    </label>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={closeAddLeadModal}
+                      className="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      Save Mock Record
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Slide-over panel */}
         <div
