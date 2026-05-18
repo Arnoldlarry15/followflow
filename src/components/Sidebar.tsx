@@ -14,7 +14,7 @@ export default function Sidebar({ currentView, onViewChange }: SidebarProps) {
         <img
           src="/follow_flow_logo_3x.png"
           alt="FollowFlow logo"
-          className="h-10 w-auto max-w-[170px] object-contain"
+          className="h-20 w-auto max-w-none object-contain"
         />
       </div>
 
