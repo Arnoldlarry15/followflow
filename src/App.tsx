@@ -150,6 +150,7 @@ export default function App() {
   const [newContact, setNewContact] = useState<NewContactFormState>(DEFAULT_NEW_CONTACT);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSignInOpen, setIsSignInOpen] = useState(false);
+  const [isProfileDetailsOpen, setIsProfileDetailsOpen] = useState(false);
   const [signInForm, setSignInForm] = useState<SignInFormState>(DEFAULT_SIGN_IN);
   const [linkedAccounts, setLinkedAccounts] = useState({
     googleGmail: false,
@@ -198,6 +199,10 @@ export default function App() {
   const closeSignInModal = useCallback(() => {
     setIsSignInOpen(false);
     setSignInForm(DEFAULT_SIGN_IN);
+  }, []);
+
+  const closeProfileDetailsModal = useCallback(() => {
+    setIsProfileDetailsOpen(false);
   }, []);
 
   const toggleLinkedAccount = useCallback((account: 'googleGmail' | 'slack' | 'twilio') => {
@@ -345,7 +350,6 @@ export default function App() {
           </div>
           <div className="flex items-center gap-3">
             <div className="hidden xl:flex items-center gap-2">
-              <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Connected Apps</span>
               <span
                 className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium border ${
                   linkedAccounts.googleGmail
@@ -434,7 +438,13 @@ export default function App() {
                       </div>
                     </div>
                     <div className="py-1">
-                      <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                      <button
+                        onClick={() => {
+                          setIsProfileOpen(false);
+                          setIsProfileDetailsOpen(true);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      >
                         <User className="w-4 h-4 text-gray-500" />
                         Profile
                       </button>
@@ -644,6 +654,60 @@ export default function App() {
                     </button>
                   </div>
                 </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {isProfileDetailsOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-30 bg-black/35 backdrop-blur-sm flex items-center justify-center px-4"
+              onClick={closeProfileDetailsModal}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: 10 }}
+                transition={{ duration: 0.18 }}
+                className="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-gray-100 overflow-hidden"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900">Profile</h3>
+                  <button
+                    type="button"
+                    onClick={closeProfileDetailsModal}
+                    className="h-9 w-9 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+                    aria-label="Close profile"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <div className="p-6">
+                  <div className="flex items-center gap-4">
+                    <img src="/profilePic.jpg" alt="User avatar" className="h-16 w-16 rounded-full object-cover border border-gray-200" />
+                    <div>
+                      <p className="text-base font-semibold text-gray-900">{sessionUser.name}</p>
+                      <p className="text-sm text-gray-500">{sessionUser.email}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 grid grid-cols-1 gap-3 text-sm">
+                    <div className="rounded-lg border border-gray-200 p-3">
+                      <p className="text-xs uppercase tracking-wide text-gray-500">Role</p>
+                      <p className="text-gray-900 font-medium">Workspace Owner (Demo)</p>
+                    </div>
+                    <div className="rounded-lg border border-gray-200 p-3">
+                      <p className="text-xs uppercase tracking-wide text-gray-500">Workspace</p>
+                      <p className="text-gray-900 font-medium">FollowFlow Command Center</p>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             </motion.div>
           )}
