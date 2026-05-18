@@ -23,7 +23,8 @@ FollowFlow is a clean, operational workspace designed for non-technical users an
 ## Quick Start
 
 ### Prerequisites
-- Node.js 16+ 
+
+- Node.js 16+
 - npm or yarn
 
 ### Installation
@@ -50,7 +51,7 @@ npm run preview
 
 ## Project Structure
 
-```
+```text
 followflow/
 ├── src/
 │   ├── components/           # React components
@@ -82,7 +83,7 @@ followflow/
 ### Core Technologies
 
 | Layer | Technology | Purpose |
-|-------|-----------|---------|
+| ----- | ---------- | ------- |
 | **Runtime** | TypeScript | Type-safe development and deployment |
 | **UI Framework** | React 18 | Component-based reactive interface |
 | **Build** | Vite | Fast dev server, optimized production builds |

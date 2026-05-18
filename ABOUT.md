@@ -103,6 +103,7 @@ Small businesses deserve powerful tools too.
 FollowFlow is built around the idea that AI should reduce stress, improve consistency, and help people grow real relationships, not just automate noise.
 
 ## Getting Started
+
 Install dependencies
 Start the development server
 Configure AI providers if desired

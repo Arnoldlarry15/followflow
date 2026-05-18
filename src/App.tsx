@@ -5,7 +5,7 @@
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { User, Settings, LogOut } from 'lucide-react';
+import { User, Settings, LogOut, Mail, MessageSquare, Phone, Link2 } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import LeadList from './components/LeadList';
 import LeadBoard from './components/LeadBoard';
@@ -52,6 +52,12 @@ interface NewContactFormState {
   notes: string;
 }
 
+interface SignInFormState {
+  email: string;
+  password: string;
+  rememberMe: boolean;
+}
+
 const DEFAULT_NEW_CONTACT: NewContactFormState = {
   name: '',
   company: '',
@@ -61,6 +67,12 @@ const DEFAULT_NEW_CONTACT: NewContactFormState = {
   status: 'pending',
   totalSpend: '',
   notes: '',
+};
+
+const DEFAULT_SIGN_IN: SignInFormState = {
+  email: '',
+  password: '',
+  rememberMe: true,
 };
 
 function getProviderHealthState(provider: LLMProvider, status: LlmStatus | null): ProviderHealthState {
@@ -136,6 +148,18 @@ export default function App() {
   const hasSyncedDefaultProvider = useRef(false);
   const [isAddLeadOpen, setIsAddLeadOpen] = useState(false);
   const [newContact, setNewContact] = useState<NewContactFormState>(DEFAULT_NEW_CONTACT);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSignInOpen, setIsSignInOpen] = useState(false);
+  const [signInForm, setSignInForm] = useState<SignInFormState>(DEFAULT_SIGN_IN);
+  const [linkedAccounts, setLinkedAccounts] = useState({
+    googleGmail: false,
+    slack: false,
+    twilio: false,
+  });
+  const [sessionUser, setSessionUser] = useState({
+    name: 'Demo User',
+    email: 'demo@followflow.local',
+  });
 
   const refreshLlmStatus = useCallback(async (showLoading = true) => {
     if (showLoading) {
@@ -166,6 +190,43 @@ export default function App() {
     setIsAddLeadOpen(false);
     setNewContact(DEFAULT_NEW_CONTACT);
   }, []);
+
+  const closeSettingsModal = useCallback(() => {
+    setIsSettingsOpen(false);
+  }, []);
+
+  const closeSignInModal = useCallback(() => {
+    setIsSignInOpen(false);
+    setSignInForm(DEFAULT_SIGN_IN);
+  }, []);
+
+  const toggleLinkedAccount = useCallback((account: 'googleGmail' | 'slack' | 'twilio') => {
+    setLinkedAccounts((current) => ({
+      ...current,
+      [account]: !current[account],
+    }));
+  }, []);
+
+  const handleSignInSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const enteredEmail = signInForm.email.trim().toLowerCase();
+    if (!enteredEmail) {
+      return;
+    }
+
+    const displayName = enteredEmail.split('@')[0]?.replace(/[._-]/g, ' ') || 'Demo User';
+    const normalizedName = displayName
+      .split(' ')
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+
+    setSessionUser({
+      name: normalizedName || 'Demo User',
+      email: enteredEmail,
+    });
+    closeSignInModal();
+  }, [closeSignInModal, signInForm.email]);
 
   const handleAddLeadSubmit = useCallback((event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -283,6 +344,39 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <div className="hidden xl:flex items-center gap-2">
+              <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Connected Apps</span>
+              <span
+                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium border ${
+                  linkedAccounts.googleGmail
+                    ? 'bg-green-50 text-green-700 border-green-200'
+                    : 'bg-gray-50 text-gray-500 border-gray-200'
+                }`}
+              >
+                <Mail className="w-3.5 h-3.5" />
+                Google/Gmail {linkedAccounts.googleGmail ? 'Linked' : 'Not linked'}
+              </span>
+              <span
+                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium border ${
+                  linkedAccounts.slack
+                    ? 'bg-green-50 text-green-700 border-green-200'
+                    : 'bg-gray-50 text-gray-500 border-gray-200'
+                }`}
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                Slack {linkedAccounts.slack ? 'Linked' : 'Not linked'}
+              </span>
+              <span
+                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium border ${
+                  linkedAccounts.twilio
+                    ? 'bg-green-50 text-green-700 border-green-200'
+                    : 'bg-gray-50 text-gray-500 border-gray-200'
+                }`}
+              >
+                <Phone className="w-3.5 h-3.5" />
+                Twilio {linkedAccounts.twilio ? 'Linked' : 'Not linked'}
+              </span>
+            </div>
             <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5">
               <label htmlFor="llm-provider" className="text-xs font-medium text-gray-500">LLM</label>
               <select
@@ -315,9 +409,10 @@ export default function App() {
               <button
                 onClick={() => setIsProfileOpen((s) => !s)}
                 aria-haspopup="true"
-                className="w-8 h-8 rounded-full bg-gradient-to-tr from-gray-200 to-gray-300 border border-gray-300 flex items-center justify-center focus:outline-none"
+                className="w-9 h-9 rounded-full border border-gray-300 overflow-hidden flex items-center justify-center focus:outline-none bg-gray-100"
                 title="Profile menu"
               >
+                <img src="/profilePic.jpg" alt="Current user profile" className="h-full w-full object-cover" />
                 <span className="sr-only">Open profile menu</span>
               </button>
 
@@ -329,24 +424,52 @@ export default function App() {
                     animate={{ opacity: 1, y: 2, scale: 1 }}
                     exit={{ opacity: 0, y: -6, scale: 0.98 }}
                     transition={{ duration: 0.14 }}
-                    className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-30"
+                    className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-30"
                   >
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-semibold text-gray-900">Demo User</p>
-                      <p className="text-xs text-gray-400">demo@followflow.local</p>
+                    <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
+                      <img src="/profilePic.jpg" alt="User avatar" className="h-10 w-10 rounded-full object-cover border border-gray-200" />
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{sessionUser.name}</p>
+                        <p className="text-xs text-gray-400">{sessionUser.email}</p>
+                      </div>
                     </div>
                     <div className="py-1">
                       <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                         <User className="w-4 h-4 text-gray-500" />
                         Profile
                       </button>
-                      <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                      <button
+                        onClick={() => {
+                          setIsProfileOpen(false);
+                          setIsSettingsOpen(true);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      >
                         <Settings className="w-4 h-4 text-gray-500" />
                         Settings
                       </button>
+                      <button
+                        onClick={() => {
+                          setIsProfileOpen(false);
+                          setIsSignInOpen(true);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      >
+                        <Link2 className="w-4 h-4 text-gray-500" />
+                        Sign in
+                      </button>
                     </div>
                     <div className="border-t border-gray-100">
-                      <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                      <button
+                        onClick={() => {
+                          setSessionUser({
+                            name: 'Demo User',
+                            email: 'demo@followflow.local',
+                          });
+                          setIsProfileOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                      >
                         <LogOut className="w-4 h-4" />
                         Sign out
                       </button>
@@ -518,6 +641,195 @@ export default function App() {
                       className="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
                     >
                       Save Record
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {isSettingsOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-30 bg-black/35 backdrop-blur-sm flex items-center justify-center px-4"
+              onClick={closeSettingsModal}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: 10 }}
+                transition={{ duration: 0.18 }}
+                className="w-full max-w-xl rounded-2xl bg-white shadow-2xl border border-gray-100 overflow-hidden"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Settings</h3>
+                    <p className="text-sm text-gray-500">Manage connected tools for this demo workspace.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={closeSettingsModal}
+                    className="h-9 w-9 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+                    aria-label="Close settings"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <div className="p-6 space-y-4">
+                  <div className="rounded-xl border border-gray-200 p-4 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <Mail className="w-5 h-5 text-red-500" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Google + Gmail</p>
+                        <p className="text-xs text-gray-500">Sync inbox threads and follow-up reminders.</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => toggleLinkedAccount('googleGmail')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                        linkedAccounts.googleGmail
+                          ? 'text-green-700 bg-green-50 border-green-200'
+                          : 'text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100'
+                      }`}
+                    >
+                      {linkedAccounts.googleGmail ? 'Linked' : 'Link Account'}
+                    </button>
+                  </div>
+
+                  <div className="rounded-xl border border-gray-200 p-4 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <MessageSquare className="w-5 h-5 text-indigo-500" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Slack</p>
+                        <p className="text-xs text-gray-500">Post daily follow-up summaries to your channel.</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => toggleLinkedAccount('slack')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                        linkedAccounts.slack
+                          ? 'text-green-700 bg-green-50 border-green-200'
+                          : 'text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100'
+                      }`}
+                    >
+                      {linkedAccounts.slack ? 'Linked' : 'Link Account'}
+                    </button>
+                  </div>
+
+                  <div className="rounded-xl border border-gray-200 p-4 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-5 h-5 text-emerald-500" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Twilio</p>
+                        <p className="text-xs text-gray-500">Enable SMS follow-up reminders and call logs.</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => toggleLinkedAccount('twilio')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                        linkedAccounts.twilio
+                          ? 'text-green-700 bg-green-50 border-green-200'
+                          : 'text-blue-700 bg-blue-50 border-blue-200 hover:bg-blue-100'
+                      }`}
+                    >
+                      {linkedAccounts.twilio ? 'Linked' : 'Link Account'}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {isSignInOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-30 bg-black/35 backdrop-blur-sm flex items-center justify-center px-4"
+              onClick={closeSignInModal}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: 10 }}
+                transition={{ duration: 0.18 }}
+                className="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-gray-100 overflow-hidden"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Sign In</h3>
+                    <p className="text-sm text-gray-500">Simulated auth for demo flows.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={closeSignInModal}
+                    className="h-9 w-9 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+                    aria-label="Close sign in"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <form onSubmit={handleSignInSubmit} className="p-6 space-y-4">
+                  <label className="space-y-2 block">
+                    <span className="text-sm font-medium text-gray-700">Email</span>
+                    <input
+                      type="email"
+                      required
+                      value={signInForm.email}
+                      onChange={(event) => setSignInForm((current) => ({ ...current, email: event.target.value }))}
+                      placeholder="you@company.com"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    />
+                  </label>
+
+                  <label className="space-y-2 block">
+                    <span className="text-sm font-medium text-gray-700">Password</span>
+                    <input
+                      type="password"
+                      required
+                      value={signInForm.password}
+                      onChange={(event) => setSignInForm((current) => ({ ...current, password: event.target.value }))}
+                      placeholder="••••••••"
+                      className="w-full rounded-lg border border-gray-200 px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    />
+                  </label>
+
+                  <label className="flex items-center gap-2 text-sm text-gray-600">
+                    <input
+                      type="checkbox"
+                      checked={signInForm.rememberMe}
+                      onChange={(event) => setSignInForm((current) => ({ ...current, rememberMe: event.target.checked }))}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    Keep me signed in on this device
+                  </label>
+
+                  <div className="flex items-center justify-end gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={closeSignInModal}
+                      className="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      Sign In
                     </button>
                   </div>
                 </form>
