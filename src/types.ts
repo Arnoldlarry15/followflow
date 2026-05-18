@@ -16,6 +16,15 @@ export interface Lead {
 
 export type ViewMode = 'inbox' | 'pipeline' | 'customers' | 'grants';
 
+export type LLMProvider = 'ollama' | 'openai' | 'anthropic' | 'gemini';
+
+export const LLM_PROVIDER_LABELS: Record<LLMProvider, string> = {
+  ollama: 'Ollama (Qwen Local)',
+  openai: 'OpenAI (API)',
+  anthropic: 'Anthropic (API)',
+  gemini: 'Gemini (API)',
+};
+
 export interface Customer {
   id: string;
   name: string;

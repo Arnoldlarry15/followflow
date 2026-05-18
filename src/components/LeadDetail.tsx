@@ -1,14 +1,15 @@
 import { X, Sparkles, Send, CalendarPlus, CheckCircle2, ChevronRight, Mail } from 'lucide-react';
 import { useState } from 'react';
-import { Lead } from '../types';
+import { Lead, LLMProvider, LLM_PROVIDER_LABELS } from '../types';
 import { cn } from '../utils';
 
 interface LeadDetailProps {
   lead: Lead;
+  llmProvider: LLMProvider;
   onClose: () => void;
 }
 
-export default function LeadDetail({ lead, onClose }: LeadDetailProps) {
+export default function LeadDetail({ lead, llmProvider, onClose }: LeadDetailProps) {
   const [draft, setDraft] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -19,13 +20,13 @@ export default function LeadDetail({ lead, onClose }: LeadDetailProps) {
       const response = await fetch('/api/draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ leadContext: lead }),
+        body: JSON.stringify({ leadContext: lead, provider: llmProvider }),
       });
       const data = await response.json();
-      if (data.draft) {
+      if (response.ok && data.draft) {
         setDraft(data.draft);
       } else {
-        setDraft('Failed to generate draft.');
+        setDraft(data.error || 'Failed to generate draft.');
       }
     } catch (err) {
       setDraft('An error occurred during generation.');
@@ -38,7 +39,7 @@ export default function LeadDetail({ lead, onClose }: LeadDetailProps) {
     <div className="w-96 bg-white border-l border-gray-200 flex flex-col h-screen shadow-xl z-10">
       <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white pt-6">
         <h2 className="font-semibold text-lg text-gray-900">Lead Details</h2>
-        <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
+        <button onClick={onClose} title="Close lead details" aria-label="Close lead details" className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
           <X className="w-5 h-5" />
         </button>
       </div>
@@ -71,6 +72,7 @@ export default function LeadDetail({ lead, onClose }: LeadDetailProps) {
             <div className="p-3 bg-white/5 rounded-lg border border-white/10">
               <p className="text-xs text-blue-400 font-bold mb-1">ACTION SUGGESTED</p>
               <p className="text-sm leading-relaxed text-gray-300">"{lead.aiSuggestion}"</p>
+              <p className="mt-3 text-[11px] text-gray-400">Provider: {LLM_PROVIDER_LABELS[llmProvider]}</p>
               {!draft && !isGenerating && (
                 <button 
                   onClick={handleGenerateDraft}
