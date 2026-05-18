@@ -12,7 +12,7 @@ export default function Sidebar({ currentView, onViewChange }: SidebarProps) {
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen overflow-y-auto">
       <div className="p-6 flex items-center gap-3">
         <img
-          src="/follow_flow_logo.png"
+          src="/follow_flow_logo_3x.png"
           alt="FollowFlow logo"
           className="h-10 w-auto max-w-[170px] object-contain"
         />
