@@ -5,6 +5,7 @@
 
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { User, Settings, LogOut } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import LeadList from './components/LeadList';
 import LeadBoard from './components/LeadBoard';
@@ -189,7 +190,7 @@ export default function App() {
         totalSpend: spendValue,
         lastPurchaseDate: todayIso,
         status: newContact.status === 'converted' ? 'VIP' : 'active',
-        notes: newContact.notes.trim() || 'Mock entry added from the lead form.',
+        notes: newContact.notes.trim() || 'Entry added from the lead form.',
       },
     ]);
 
@@ -202,8 +203,8 @@ export default function App() {
         status: newContact.status,
         lastContactDate: todayIso,
         nextFollowUpDate: followUpIso,
-        notes: newContact.notes.trim() || 'Mock lead created from the entry form.',
-        aiSuggestion: 'Mock record created. Follow up to verify contact details and next steps.',
+        notes: newContact.notes.trim() || 'Lead created from the entry form.',
+        aiSuggestion: 'Record created. Follow up to verify contact details and next steps.',
       },
       ...current,
     ]);
@@ -216,8 +217,8 @@ export default function App() {
       status: newContact.status,
       lastContactDate: todayIso,
       nextFollowUpDate: followUpIso,
-      notes: newContact.notes.trim() || 'Mock lead created from the entry form.',
-      aiSuggestion: 'Mock record created. Follow up to verify contact details and next steps.',
+      notes: newContact.notes.trim() || 'Lead created from the entry form.',
+      aiSuggestion: 'Record created. Follow up to verify contact details and next steps.',
     });
 
     closeAddLeadModal();
@@ -239,6 +240,27 @@ export default function App() {
   }, [refreshLlmStatus]);
 
   const providerHealth = getProviderHealthState(llmProvider, llmStatus);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function onPointerDown(e: PointerEvent) {
+      if (isProfileOpen && profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    }
+
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setIsProfileOpen(false);
+    }
+
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [isProfileOpen]);
 
   return (
     <div className="flex h-screen bg-[#F9FAFB] text-[#111827] font-sans overflow-hidden">
@@ -288,7 +310,51 @@ export default function App() {
             >
               + Add Lead
             </button>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-gray-200 to-gray-300 border border-gray-300" title="Profile placeholder" />
+
+            <div className="relative">
+              <button
+                onClick={() => setIsProfileOpen((s) => !s)}
+                aria-haspopup="true"
+                className="w-8 h-8 rounded-full bg-gradient-to-tr from-gray-200 to-gray-300 border border-gray-300 flex items-center justify-center focus:outline-none"
+                title="Profile menu"
+              >
+                <span className="sr-only">Open profile menu</span>
+              </button>
+
+              <AnimatePresence>
+                {isProfileOpen && (
+                  <motion.div
+                    ref={profileRef}
+                    initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 2, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                    transition={{ duration: 0.14 }}
+                    className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-30"
+                  >
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-sm font-semibold text-gray-900">Demo User</p>
+                      <p className="text-xs text-gray-400">demo@followflow.local</p>
+                    </div>
+                    <div className="py-1">
+                      <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <User className="w-4 h-4 text-gray-500" />
+                        Profile
+                      </button>
+                      <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <Settings className="w-4 h-4 text-gray-500" />
+                        Settings
+                      </button>
+                    </div>
+                    <div className="border-t border-gray-100">
+                      <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                        <LogOut className="w-4 h-4" />
+                        Sign out
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </header>
 
@@ -337,7 +403,7 @@ export default function App() {
               >
                 <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Add Mock Lead</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">Add Lead</h3>
                     <p className="text-sm text-gray-500">Create a temporary customer/lead record for testing the UI.</p>
                   </div>
                   <button
@@ -417,7 +483,7 @@ export default function App() {
                       </select>
                     </label>
                     <label className="space-y-2 md:col-span-2">
-                      <span className="text-sm font-medium text-gray-700">Total Spend (mock customer data)</span>
+                      <span className="text-sm font-medium text-gray-700">Total Spend (sample data)</span>
                       <input
                         type="number"
                         min="0"
@@ -434,7 +500,7 @@ export default function App() {
                         onChange={(event) => setNewContact((current) => ({ ...current, notes: event.target.value }))}
                         rows={4}
                         className="w-full rounded-lg border border-gray-200 px-3 py-2.5 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 resize-none"
-                        placeholder="Add any mock details you want to test with."
+                        placeholder="Add any details you want to test with."
                       />
                     </label>
                   </div>
@@ -451,7 +517,7 @@ export default function App() {
                       type="submit"
                       className="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
                     >
-                      Save Mock Record
+                      Save Record
                     </button>
                   </div>
                 </form>
