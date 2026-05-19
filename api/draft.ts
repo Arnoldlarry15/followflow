@@ -11,6 +11,13 @@ interface ApiResponse {
   end(body: string): void;
 }
 
+class InvalidJsonError extends Error {
+  constructor() {
+    super("Invalid JSON body.");
+    this.name = "InvalidJsonError";
+  }
+}
+
 function sendJson(response: ApiResponse, statusCode: number, body: unknown): void {
   response.statusCode = statusCode;
   response.setHeader("Content-Type", "application/json");
@@ -22,7 +29,7 @@ function parseJsonBody(body: unknown): { leadContext?: unknown; provider?: unkno
     try {
       return JSON.parse(body) as { leadContext?: unknown; provider?: unknown };
     } catch {
-      throw new Error("Invalid JSON body.");
+      throw new InvalidJsonError();
     }
   }
 
@@ -30,7 +37,7 @@ function parseJsonBody(body: unknown): { leadContext?: unknown; provider?: unkno
     try {
       return JSON.parse(Buffer.from(body).toString("utf8")) as { leadContext?: unknown; provider?: unknown };
     } catch {
-      throw new Error("Invalid JSON body.");
+      throw new InvalidJsonError();
     }
   }
 
@@ -65,7 +72,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       }),
     );
   } catch (error) {
-    if (error instanceof Error && error.message === "Invalid JSON body.") {
+    if (error instanceof InvalidJsonError) {
       sendJson(response, 400, { error: "Invalid JSON body." });
       return;
     }
