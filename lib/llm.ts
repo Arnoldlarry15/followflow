@@ -57,15 +57,17 @@ function getProviderConfig(): ProviderConfig {
   const hasOpenAiKey = Boolean(process.env.OPENAI_API_KEY);
   const hasAnthropicKey = Boolean(process.env.ANTHROPIC_API_KEY);
 
-  const defaultProvider: LlmProvider = hasOpenAiKey
-    ? "openai"
-    : hasAnthropicKey
-      ? "anthropic"
-      : hasGeminiKey
-        ? "gemini"
-        : hasGroqKey
-          ? "groq"
-          : "ollama";
+  let defaultProvider: LlmProvider = "ollama";
+
+  if (hasOpenAiKey) {
+    defaultProvider = "openai";
+  } else if (hasAnthropicKey) {
+    defaultProvider = "anthropic";
+  } else if (hasGeminiKey) {
+    defaultProvider = "gemini";
+  } else if (hasGroqKey) {
+    defaultProvider = "groq";
+  }
 
   return {
     geminiModel,
@@ -380,17 +382,26 @@ export async function generateDraft(input: {
   const config = getProviderConfig();
   const normalizedProvider = resolveProvider(input.provider, config);
   const prompt = buildDraftPrompt(input.leadContext);
+  let draft: string;
 
-  const draft =
-    normalizedProvider === "openai"
-      ? await generateWithOpenAI(prompt, config)
-      : normalizedProvider === "anthropic"
-        ? await generateWithAnthropic(prompt, config)
-        : normalizedProvider === "gemini"
-          ? await generateWithGemini(prompt, config)
-          : normalizedProvider === "groq"
-            ? await generateWithGroq(prompt, config)
-            : await generateWithOllama(prompt, config);
+  switch (normalizedProvider) {
+    case "openai":
+      draft = await generateWithOpenAI(prompt, config);
+      break;
+    case "anthropic":
+      draft = await generateWithAnthropic(prompt, config);
+      break;
+    case "gemini":
+      draft = await generateWithGemini(prompt, config);
+      break;
+    case "groq":
+      draft = await generateWithGroq(prompt, config);
+      break;
+    case "ollama":
+    default:
+      draft = await generateWithOllama(prompt, config);
+      break;
+  }
 
   return {
     draft,
