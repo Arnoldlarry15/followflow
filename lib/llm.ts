@@ -231,27 +231,36 @@ async function generateWithGroq(prompt: string, config: ProviderConfig): Promise
     );
   }
 
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${config.groqApiKey}`,
-    },
-    body: JSON.stringify({
-      model: config.groqModel,
-      temperature: 0.7,
-      messages: [
-        {
-          role: "system",
-          content: "You are FollowFlow, an AI-powered follow-up and lead management assistant.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-    }),
-  });
+  const timeoutMs = Number(process.env.GROQ_TIMEOUT_MS || 30000);
+  let response: Response;
+
+  try {
+    response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${config.groqApiKey}`,
+      },
+      body: JSON.stringify({
+        model: config.groqModel,
+        temperature: 0.7,
+        messages: [
+          {
+            role: "system",
+            content: "You are FollowFlow, an AI-powered follow-up and lead management assistant.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+      }),
+      signal: AbortSignal.timeout(Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 30000),
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Groq request failed before completion: ${errorMessage}`);
+  }
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -259,9 +268,18 @@ async function generateWithGroq(prompt: string, config: ProviderConfig): Promise
   }
 
   const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
+    choices?: Array<{ message?: { content?: string | Array<{ text?: string; type?: string }> | null } }>;
   };
-  const text = data.choices?.[0]?.message?.content?.trim();
+  const content = data.choices?.[0]?.message?.content;
+  const text =
+    typeof content === "string"
+      ? content.trim()
+      : Array.isArray(content)
+        ? content
+            .map((part) => (typeof part?.text === "string" ? part.text : ""))
+            .join("")
+            .trim()
+        : "";
 
   if (!text) {
     throw new Error("Groq returned an empty response.");
