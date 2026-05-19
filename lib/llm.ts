@@ -5,6 +5,7 @@ export type LlmProvider = "ollama" | "openai" | "anthropic" | "gemini" | "groq";
 interface ProviderConfig {
   geminiModel: string;
   groqModel: string;
+  groqApiKey?: string;
   openAiModel: string;
   anthropicModel: string;
   ollamaBaseUrl: string;
@@ -14,6 +15,17 @@ interface ProviderConfig {
   hasOpenAiKey: boolean;
   hasAnthropicKey: boolean;
   defaultProvider: LlmProvider;
+}
+
+function getEnvValue(...names: string[]): string | undefined {
+  for (const name of names) {
+    const value = process.env[name]?.trim();
+    if (value) {
+      return value;
+    }
+  }
+
+  return undefined;
 }
 
 export interface LlmStatusResponse {
@@ -52,7 +64,13 @@ function getProviderConfig(): ProviderConfig {
   const ollamaModel = process.env.OLLAMA_MODEL || "qwen2.5:7b";
 
   const hasGeminiKey = Boolean(process.env.GEMINI_API_KEY);
-  const hasGroqKey = Boolean(process.env.GROQ_API_KEY);
+  const groqApiKey = getEnvValue(
+    "GROQ_API_KEY",
+    "GROQ_KEY",
+    "VITE_GROQ_API_KEY",
+    "NEXT_PUBLIC_GROQ_API_KEY",
+  );
+  const hasGroqKey = Boolean(groqApiKey);
   const hasOpenAiKey = Boolean(process.env.OPENAI_API_KEY);
   const hasAnthropicKey = Boolean(process.env.ANTHROPIC_API_KEY);
 
@@ -71,6 +89,7 @@ function getProviderConfig(): ProviderConfig {
   return {
     geminiModel,
     groqModel,
+    groqApiKey,
     openAiModel,
     anthropicModel,
     ollamaBaseUrl,
@@ -205,15 +224,17 @@ async function generateWithGemini(prompt: string, config: ProviderConfig): Promi
 }
 
 async function generateWithGroq(prompt: string, config: ProviderConfig): Promise<string> {
-  if (!process.env.GROQ_API_KEY) {
-    throw new Error("Groq is not configured. Add GROQ_API_KEY to use this provider.");
+  if (!config.groqApiKey) {
+    throw new Error(
+      "Groq is not configured. Add GROQ_API_KEY (or GROQ_KEY/VITE_GROQ_API_KEY) to use this provider.",
+    );
   }
 
   const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+      Authorization: `Bearer ${config.groqApiKey}`,
     },
     body: JSON.stringify({
       model: config.groqModel,
@@ -302,7 +323,9 @@ function resolveProvider(provider: LlmProvider | undefined, config: ProviderConf
 
   if (provider === "groq") {
     if (!config.hasGroqKey) {
-      throw new Error("Groq is not configured. Add GROQ_API_KEY to use this provider.");
+      throw new Error(
+        "Groq is not configured. Add GROQ_API_KEY (or GROQ_KEY/VITE_GROQ_API_KEY) to use this provider.",
+      );
     }
     return "groq";
   }
