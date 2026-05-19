@@ -19,7 +19,7 @@ export type ViewMode = 'inbox' | 'pipeline' | 'customers' | 'grants';
 export type LLMProvider = 'ollama' | 'openai' | 'anthropic' | 'gemini';
 
 export const LLM_PROVIDER_LABELS: Record<LLMProvider, string> = {
-  ollama: 'Ollama (Qwen Local)',
+  ollama: 'Ollama (Local / Remote)',
   openai: 'OpenAI (API)',
   anthropic: 'Anthropic (API)',
   gemini: 'Gemini (API)',

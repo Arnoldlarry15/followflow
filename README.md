@@ -103,12 +103,35 @@ followflow/
 
 ### AI Providers
 
-FollowFlow supports multiple AI backends:
+FollowFlow supports multiple AI backends with automatic fallback:
 
-- **Ollama** — Local inference, no API key required
-- **OpenAI** — Cloud-based, requires API key
-- **Anthropic** — Cloud-based Claude models, requires API key
-- **Gemini** — Google's Gemini API, requires API key
+| Priority | Provider | Requirement |
+|----------|----------|-------------|
+| 1 | OpenAI | `OPENAI_API_KEY` |
+| 2 | Anthropic | `ANTHROPIC_API_KEY` |
+| 3 | Gemini | `GEMINI_API_KEY` |
+| 4 | Ollama | `OLLAMA_BASE_URL` (default fallback) |
+
+Ollama is used automatically when no cloud API key is configured. Set only the keys you want to use; FollowFlow will pick the highest-priority available provider.
+
+### Using Ollama
+
+**Running locally:** Ollama works out of the box. Start it with `ollama serve` and make sure the model is pulled (`ollama pull qwen2.5:7b`). No extra configuration needed.
+
+**Deployed on Vercel (or any cloud platform):** The server cannot reach `localhost`, so you must expose your Ollama instance on a public URL and set `OLLAMA_BASE_URL` in your Vercel project's Environment Variables.
+
+```bash
+# Option 1 — ngrok (easiest)
+ollama serve
+ngrok http 11434
+# Set OLLAMA_BASE_URL=https://<your-id>.ngrok.io in Vercel env vars
+
+# Option 2 — Tailscale Funnel
+tailscale funnel 11434
+# Set OLLAMA_BASE_URL to your Tailscale Funnel URL in Vercel env vars
+```
+
+> **Note on timeouts:** Vercel Hobby plan functions time out after 10 seconds. Inference on a 7B model may occasionally exceed this. The Pro plan raises the limit to 60 seconds.
 
 Provider configuration and health status are monitored in real-time via the header status indicator.
 
