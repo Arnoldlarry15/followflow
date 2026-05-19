@@ -232,7 +232,9 @@ async function generateWithGroq(prompt: string, config: ProviderConfig): Promise
     );
   }
 
-  const configuredTimeout = Number.parseInt(process.env.GROQ_TIMEOUT_MS || "", 10);
+  const configuredTimeout = process.env.GROQ_TIMEOUT_MS
+    ? Number.parseInt(process.env.GROQ_TIMEOUT_MS, 10)
+    : DEFAULT_GROQ_TIMEOUT_MS;
   const timeoutMs =
     Number.isFinite(configuredTimeout) && configuredTimeout > 0 ? configuredTimeout : DEFAULT_GROQ_TIMEOUT_MS;
   let response: Response;
