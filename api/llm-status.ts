@@ -28,7 +28,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
   } catch (error) {
     console.error("LLM status error:", error);
     sendJson(response, 500, {
-      error: error instanceof Error ? error.message : "Failed to load LLM status.",
+      error: "Failed to load LLM status.",
     });
   }
 }

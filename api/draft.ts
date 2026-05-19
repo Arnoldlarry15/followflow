@@ -11,6 +11,13 @@ interface ApiResponse {
   end(body: string): void;
 }
 
+class InvalidJsonError extends Error {
+  constructor() {
+    super("Invalid JSON body.");
+    this.name = "InvalidJsonError";
+  }
+}
+
 function sendJson(response: ApiResponse, statusCode: number, body: unknown): void {
   response.statusCode = statusCode;
   response.setHeader("Content-Type", "application/json");
@@ -19,11 +26,19 @@ function sendJson(response: ApiResponse, statusCode: number, body: unknown): voi
 
 function parseJsonBody(body: unknown): { leadContext?: unknown; provider?: unknown } {
   if (typeof body === "string") {
-    return JSON.parse(body) as { leadContext?: unknown; provider?: unknown };
+    try {
+      return JSON.parse(body) as { leadContext?: unknown; provider?: unknown };
+    } catch {
+      throw new InvalidJsonError();
+    }
   }
 
   if (body instanceof Uint8Array) {
-    return JSON.parse(Buffer.from(body).toString("utf8")) as { leadContext?: unknown; provider?: unknown };
+    try {
+      return JSON.parse(Buffer.from(body).toString("utf8")) as { leadContext?: unknown; provider?: unknown };
+    } catch {
+      throw new InvalidJsonError();
+    }
   }
 
   if (body && typeof body === "object") {
@@ -57,9 +72,14 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       }),
     );
   } catch (error) {
+    if (error instanceof InvalidJsonError) {
+      sendJson(response, 400, { error: error.message });
+      return;
+    }
+
     console.error("Draft generation error:", error);
     sendJson(response, 500, {
-      error: error instanceof Error ? error.message : "Failed to generate draft.",
+      error: "Failed to generate draft.",
     });
   }
 }

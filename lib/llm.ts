@@ -1,4 +1,3 @@
-import "dotenv/config";
 import { GoogleGenAI } from "@google/genai";
 
 export type LlmProvider = "ollama" | "openai" | "anthropic" | "gemini" | "groq";
