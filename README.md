@@ -113,6 +113,18 @@ FollowFlow supports multiple AI backends:
 
 Provider configuration and health status are monitored in real-time via the header status indicator.
 
+### Groq setup (including Vercel deployment)
+
+To run FollowFlow with Groq in a deployed environment:
+
+1. Create a Groq API key in your Groq account.
+2. Set these environment variables:
+   - `GROQ_API_KEY` (required)
+   - `GROQ_MODEL` (optional, default: `llama-3.1-8b-instant`)
+3. In Vercel, add the variables in **Project Settings → Environment Variables** for the environments you use (Preview/Production).
+4. Redeploy after saving env vars.
+5. In the app, choose **Groq (API)** from the LLM selector (or it will auto-default to Groq when no OpenAI/Anthropic/Gemini keys are set and `GROQ_API_KEY` is present).
+
 ## Development
 
 ### Hot Module Replacement (HMR)
