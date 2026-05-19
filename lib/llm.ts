@@ -231,7 +231,8 @@ async function generateWithGroq(prompt: string, config: ProviderConfig): Promise
     );
   }
 
-  const timeoutMs = Number(process.env.GROQ_TIMEOUT_MS || 30000);
+  const configuredTimeout = Number(process.env.GROQ_TIMEOUT_MS);
+  const timeoutMs = Number.isFinite(configuredTimeout) && configuredTimeout > 0 ? configuredTimeout : 30000;
   let response: Response;
 
   try {
@@ -255,7 +256,7 @@ async function generateWithGroq(prompt: string, config: ProviderConfig): Promise
           },
         ],
       }),
-      signal: AbortSignal.timeout(Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 30000),
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -276,7 +277,7 @@ async function generateWithGroq(prompt: string, config: ProviderConfig): Promise
       ? content.trim()
       : Array.isArray(content)
         ? content
-            .map((part) => (typeof part?.text === "string" ? part.text : ""))
+            .map((part) => (part && typeof part.text === "string" ? part.text : ""))
             .join("")
             .trim()
         : "";
