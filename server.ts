@@ -6,6 +6,7 @@ import { createServer as createViteServer } from "vite";
 import {
   ANTHROPIC_MODEL,
   GEMINI_MODEL,
+  GROQ_MODEL,
   OLLAMA_BASE_URL,
   OLLAMA_MODEL,
   OPENAI_MODEL,
@@ -15,6 +16,7 @@ import {
   generate,
   hasAnthropicKey,
   hasGeminiKey,
+  hasGroqKey,
   hasOpenAiKey,
   modelForProvider,
   resolveProvider,
@@ -37,6 +39,10 @@ async function startServer() {
     const ollama = await checkOllamaStatus();
     res.json({
       defaultProvider,
+      groq: {
+        model: GROQ_MODEL,
+        configured: hasGroqKey,
+      },
       ollama: {
         baseUrl: OLLAMA_BASE_URL,
         model: OLLAMA_MODEL,

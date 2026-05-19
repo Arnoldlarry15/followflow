@@ -105,14 +105,19 @@ followflow/
 
 FollowFlow supports multiple AI backends with automatic fallback:
 
-| Priority | Provider | Requirement |
-|----------|----------|-------------|
-| 1 | OpenAI | `OPENAI_API_KEY` |
-| 2 | Anthropic | `ANTHROPIC_API_KEY` |
-| 3 | Gemini | `GEMINI_API_KEY` |
-| 4 | Ollama | `OLLAMA_BASE_URL` (default fallback) |
+| Priority | Provider | Requirement | Cost |
+|----------|----------|-------------|------|
+| 1 | OpenAI | `OPENAI_API_KEY` | Paid |
+| 2 | Anthropic | `ANTHROPIC_API_KEY` | Paid |
+| 3 | Gemini | `GEMINI_API_KEY` | Free tier (15 RPM, 1,500 req/day) |
+| 4 | Groq | `GROQ_API_KEY` | **Free** (14,400 req/day, Llama 3.3 70B) |
+| 5 | Ollama | `OLLAMA_BASE_URL` | Free (local/self-hosted) |
 
-Ollama is used automatically when no cloud API key is configured. Set only the keys you want to use; FollowFlow will pick the highest-priority available provider.
+Set only the keys you want to use; FollowFlow will pick the highest-priority configured provider automatically.
+
+**Getting started for free (no credit card):**
+- **Groq** — [console.groq.com](https://console.groq.com) → create account → API Keys → add as `GROQ_API_KEY` in Vercel
+- **Gemini** — [aistudio.google.com](https://aistudio.google.com) → Get API key → add as `GEMINI_API_KEY` in Vercel
 
 ### Using Ollama
 

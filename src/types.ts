@@ -16,13 +16,14 @@ export interface Lead {
 
 export type ViewMode = 'inbox' | 'pipeline' | 'customers' | 'grants';
 
-export type LLMProvider = 'ollama' | 'openai' | 'anthropic' | 'gemini';
+export type LLMProvider = 'ollama' | 'openai' | 'anthropic' | 'gemini' | 'groq';
 
 export const LLM_PROVIDER_LABELS: Record<LLMProvider, string> = {
-  ollama: 'Ollama (Local / Remote)',
+  groq: 'Groq — Llama (Free)',
+  gemini: 'Gemini (Free tier / API)',
   openai: 'OpenAI (API)',
   anthropic: 'Anthropic (API)',
-  gemini: 'Gemini (API)',
+  ollama: 'Ollama (Local / Remote)',
 };
 
 export interface Customer {

@@ -1,11 +1,14 @@
 import { GoogleGenAI } from "@google/genai";
+import Groq from "groq-sdk";
 
-export type LlmProvider = "ollama" | "openai" | "anthropic" | "gemini";
+export type LlmProvider = "ollama" | "openai" | "anthropic" | "gemini" | "groq";
 
 export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 export const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 export const ANTHROPIC_MODEL =
   process.env.ANTHROPIC_MODEL || "claude-3-5-haiku-latest";
+export const GROQ_MODEL =
+  process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
 export const OLLAMA_BASE_URL =
   process.env.OLLAMA_BASE_URL || "http://127.0.0.1:11434";
 export const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5:7b";
@@ -13,15 +16,18 @@ export const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5:7b";
 export const hasGeminiKey = Boolean(process.env.GEMINI_API_KEY);
 export const hasOpenAiKey = Boolean(process.env.OPENAI_API_KEY);
 export const hasAnthropicKey = Boolean(process.env.ANTHROPIC_API_KEY);
+export const hasGroqKey = Boolean(process.env.GROQ_API_KEY);
 
-// Fallback order: OpenAI → Anthropic → Gemini → Ollama
+// Fallback order: OpenAI → Anthropic → Gemini → Groq (free) → Ollama
 export const defaultProvider: LlmProvider = hasOpenAiKey
   ? "openai"
   : hasAnthropicKey
     ? "anthropic"
     : hasGeminiKey
       ? "gemini"
-      : "ollama";
+      : hasGroqKey
+        ? "groq"
+        : "ollama";
 
 export function buildDraftPrompt(leadContext: unknown): string {
   return `You are FollowFlow, an AI-powered follow-up and lead management assistant.
@@ -133,6 +139,33 @@ export async function generateWithGemini(prompt: string): Promise<string> {
   return text;
 }
 
+export async function generateWithGroq(prompt: string): Promise<string> {
+  if (!process.env.GROQ_API_KEY) {
+    throw new Error(
+      "Groq is not configured. Add GROQ_API_KEY to use this provider. " +
+        "Get a free key at https://console.groq.com"
+    );
+  }
+
+  const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  const completion = await client.chat.completions.create({
+    model: GROQ_MODEL,
+    temperature: 0.7,
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are FollowFlow, an AI-powered follow-up and lead management assistant.",
+      },
+      { role: "user", content: prompt },
+    ],
+  });
+
+  const text = completion.choices[0]?.message?.content?.trim();
+  if (!text) throw new Error("Groq returned an empty response.");
+  return text;
+}
+
 export async function generateWithOllama(prompt: string): Promise<string> {
   let response: Response;
   try {
@@ -165,6 +198,7 @@ export function resolveProvider(provider?: LlmProvider): LlmProvider {
   if (provider === "openai" && hasOpenAiKey) return "openai";
   if (provider === "anthropic" && hasAnthropicKey) return "anthropic";
   if (provider === "gemini" && hasGeminiKey) return "gemini";
+  if (provider === "groq" && hasGroqKey) return "groq";
   if (provider === "ollama") return "ollama";
   return defaultProvider;
 }
@@ -180,6 +214,8 @@ export async function generate(
       return generateWithAnthropic(prompt);
     case "gemini":
       return generateWithGemini(prompt);
+    case "groq":
+      return generateWithGroq(prompt);
     default:
       return generateWithOllama(prompt);
   }
@@ -193,6 +229,8 @@ export function modelForProvider(provider: LlmProvider): string {
       return ANTHROPIC_MODEL;
     case "gemini":
       return GEMINI_MODEL;
+    case "groq":
+      return GROQ_MODEL;
     default:
       return OLLAMA_MODEL;
   }
