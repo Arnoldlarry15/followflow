@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 export type LlmProvider = "ollama" | "openai" | "anthropic" | "gemini" | "groq";
+const DEFAULT_GROQ_TIMEOUT_MS = 30000;
 
 interface ProviderConfig {
   geminiModel: string;
@@ -232,7 +233,8 @@ async function generateWithGroq(prompt: string, config: ProviderConfig): Promise
   }
 
   const configuredTimeout = Number(process.env.GROQ_TIMEOUT_MS);
-  const timeoutMs = Number.isFinite(configuredTimeout) && configuredTimeout > 0 ? configuredTimeout : 30000;
+  const timeoutMs =
+    Number.isFinite(configuredTimeout) && configuredTimeout > 0 ? configuredTimeout : DEFAULT_GROQ_TIMEOUT_MS;
   let response: Response;
 
   try {
@@ -272,21 +274,28 @@ async function generateWithGroq(prompt: string, config: ProviderConfig): Promise
     choices?: Array<{ message?: { content?: string | Array<{ text?: string; type?: string }> | null } }>;
   };
   const content = data.choices?.[0]?.message?.content;
-  const text =
-    typeof content === "string"
-      ? content.trim()
-      : Array.isArray(content)
-        ? content
-            .map((part) => (part && typeof part.text === "string" ? part.text : ""))
-            .join("")
-            .trim()
-        : "";
+  const text = extractTextFromContent(content);
 
   if (!text) {
     throw new Error("Groq returned an empty response.");
   }
 
   return text;
+}
+
+function extractTextFromContent(content: string | Array<{ text?: string; type?: string }> | null | undefined): string {
+  if (typeof content === "string") {
+    return content.trim();
+  }
+
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => (part && typeof part.text === "string" ? part.text : ""))
+      .join("")
+      .trim();
+  }
+
+  return "";
 }
 
 async function generateWithOllama(prompt: string, config: ProviderConfig): Promise<string> {
