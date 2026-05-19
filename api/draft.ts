@@ -73,7 +73,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     );
   } catch (error) {
     if (error instanceof InvalidJsonError) {
-      sendJson(response, 400, { error: "Invalid JSON body." });
+      sendJson(response, 400, { error: error.message });
       return;
     }
 
