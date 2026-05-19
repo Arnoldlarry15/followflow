@@ -19,11 +19,19 @@ function sendJson(response: ApiResponse, statusCode: number, body: unknown): voi
 
 function parseJsonBody(body: unknown): { leadContext?: unknown; provider?: unknown } {
   if (typeof body === "string") {
-    return JSON.parse(body) as { leadContext?: unknown; provider?: unknown };
+    try {
+      return JSON.parse(body) as { leadContext?: unknown; provider?: unknown };
+    } catch {
+      throw new Error("Invalid JSON body.");
+    }
   }
 
   if (body instanceof Uint8Array) {
-    return JSON.parse(Buffer.from(body).toString("utf8")) as { leadContext?: unknown; provider?: unknown };
+    try {
+      return JSON.parse(new TextDecoder("utf8").decode(body)) as { leadContext?: unknown; provider?: unknown };
+    } catch {
+      throw new Error("Invalid JSON body.");
+    }
   }
 
   if (body && typeof body === "object") {
@@ -57,9 +65,14 @@ export default async function handler(request: ApiRequest, response: ApiResponse
       }),
     );
   } catch (error) {
+    if (error instanceof Error && error.message === "Invalid JSON body.") {
+      sendJson(response, 400, { error: "Invalid JSON body." });
+      return;
+    }
+
     console.error("Draft generation error:", error);
     sendJson(response, 500, {
-      error: error instanceof Error ? error.message : "Failed to generate draft.",
+      error: "Failed to generate draft.",
     });
   }
 }
