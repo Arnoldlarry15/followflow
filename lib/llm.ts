@@ -232,7 +232,7 @@ async function generateWithGroq(prompt: string, config: ProviderConfig): Promise
     );
   }
 
-  const configuredTimeout = Number(process.env.GROQ_TIMEOUT_MS);
+  const configuredTimeout = Number.parseInt(process.env.GROQ_TIMEOUT_MS || "", 10);
   const timeoutMs =
     Number.isFinite(configuredTimeout) && configuredTimeout > 0 ? configuredTimeout : DEFAULT_GROQ_TIMEOUT_MS;
   let response: Response;
@@ -271,7 +271,7 @@ async function generateWithGroq(prompt: string, config: ProviderConfig): Promise
   }
 
   const data = (await response.json()) as {
-    choices?: Array<{ message?: { content?: string | Array<{ text?: string; type?: string }> | null } }>;
+    choices?: Array<{ message?: { content?: string | Array<{ text?: string }> | null } }>;
   };
   const content = data.choices?.[0]?.message?.content;
   const text = extractTextFromContent(content);
@@ -283,7 +283,7 @@ async function generateWithGroq(prompt: string, config: ProviderConfig): Promise
   return text;
 }
 
-function extractTextFromContent(content: string | Array<{ text?: string; type?: string }> | null | undefined): string {
+function extractTextFromContent(content: string | Array<{ text?: string }> | null | undefined): string {
   if (typeof content === "string") {
     return content.trim();
   }
