@@ -307,7 +307,11 @@ function resolveProvider(provider: LlmProvider | undefined, config: ProviderConf
     return "groq";
   }
 
-  return "ollama";
+  if (provider === "ollama") {
+    return "ollama";
+  }
+
+  throw new Error(`Unsupported LLM provider: ${String(provider)}`);
 }
 
 function getModelForProvider(provider: LlmProvider, config: ProviderConfig): string {
