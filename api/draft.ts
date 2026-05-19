@@ -28,7 +28,7 @@ function parseJsonBody(body: unknown): { leadContext?: unknown; provider?: unkno
 
   if (body instanceof Uint8Array) {
     try {
-      return JSON.parse(new TextDecoder("utf8").decode(body)) as { leadContext?: unknown; provider?: unknown };
+      return JSON.parse(Buffer.from(body).toString("utf8")) as { leadContext?: unknown; provider?: unknown };
     } catch {
       throw new Error("Invalid JSON body.");
     }
