@@ -4,15 +4,17 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 
-type LlmProvider = "ollama" | "openai" | "anthropic" | "gemini";
+type LlmProvider = "ollama" | "openai" | "anthropic" | "gemini" | "groq";
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.1-8b-instant";
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-3-5-haiku-latest";
 const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://127.0.0.1:11434";
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || "qwen2.5:7b";
 
 const hasGeminiKey = Boolean(process.env.GEMINI_API_KEY);
+const hasGroqKey = Boolean(process.env.GROQ_API_KEY);
 const hasOpenAiKey = Boolean(process.env.OPENAI_API_KEY);
 const hasAnthropicKey = Boolean(process.env.ANTHROPIC_API_KEY);
 const defaultProvider: LlmProvider = hasOpenAiKey
@@ -21,6 +23,8 @@ const defaultProvider: LlmProvider = hasOpenAiKey
     ? "anthropic"
     : hasGeminiKey
       ? "gemini"
+      : hasGroqKey
+        ? "groq"
     : "ollama";
 
 function buildDraftPrompt(leadContext: unknown): string {
@@ -144,6 +148,50 @@ async function generateWithGemini(prompt: string): Promise<string> {
   return text;
 }
 
+async function generateWithGroq(prompt: string): Promise<string> {
+  if (!process.env.GROQ_API_KEY) {
+    throw new Error("Groq is not configured. Add GROQ_API_KEY to use this provider.");
+  }
+
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: GROQ_MODEL,
+      temperature: 0.7,
+      messages: [
+        {
+          role: "system",
+          content: "You are FollowFlow, an AI-powered follow-up and lead management assistant.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Groq request failed (${response.status}): ${errorText}`);
+  }
+
+  const data = (await response.json()) as {
+    choices?: Array<{ message?: { content?: string } }>;
+  };
+  const text = data.choices?.[0]?.message?.content?.trim();
+
+  if (!text) {
+    throw new Error("Groq returned an empty response.");
+  }
+
+  return text;
+}
+
 async function generateWithOllama(prompt: string): Promise<string> {
   const response = await fetch(`${OLLAMA_BASE_URL}/api/generate`, {
     method: "POST",
@@ -181,6 +229,10 @@ function resolveProvider(provider?: LlmProvider): LlmProvider {
 
   if (provider === "gemini" && hasGeminiKey) {
     return "gemini";
+  }
+
+  if (provider === "groq" && hasGroqKey) {
+    return "groq";
   }
 
   if (provider === "ollama") {
@@ -244,6 +296,10 @@ async function startServer() {
         model: GEMINI_MODEL,
         configured: hasGeminiKey,
       },
+      groq: {
+        model: GROQ_MODEL,
+        configured: hasGroqKey,
+      },
     });
   });
 
@@ -269,6 +325,8 @@ async function startServer() {
             ? await generateWithAnthropic(prompt)
             : normalizedProvider === "gemini"
               ? await generateWithGemini(prompt)
+              : normalizedProvider === "groq"
+                ? await generateWithGroq(prompt)
             : await generateWithOllama(prompt);
 
       res.json({
@@ -281,6 +339,8 @@ async function startServer() {
               ? ANTHROPIC_MODEL
               : normalizedProvider === "gemini"
                 ? GEMINI_MODEL
+                : normalizedProvider === "groq"
+                  ? GROQ_MODEL
               : OLLAMA_MODEL,
       });
     } catch (error) {

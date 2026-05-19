@@ -13,7 +13,7 @@ FollowFlow is a clean, operational workspace designed for non-technical users an
 
 ## Features
 
-- **Multi-Provider AI Orchestration** — Seamless switching between Ollama (local), OpenAI, Anthropic, and Gemini with live provider health monitoring
+- **Multi-Provider AI Orchestration** — Seamless switching between Ollama (local), OpenAI, Anthropic, Gemini, and Groq with live provider health monitoring
 - **Lead & Customer Management** — Unified workspace for tracking opportunities, conversations, and follow-ups with rich metadata
 - **Responsive Real-time UI** — Animated interactions powered by motion/react, Tailwind CSS, and Lucide icons
 - **Dynamic Data Workspace** — Lead detail views, kanban-style boards, customer lists, and grant opportunity tracking
@@ -109,6 +109,7 @@ FollowFlow supports multiple AI backends:
 - **OpenAI** — Cloud-based, requires API key
 - **Anthropic** — Cloud-based Claude models, requires API key
 - **Gemini** — Google's Gemini API, requires API key
+- **Groq** — Cloud-based fast inference, requires API key
 
 Provider configuration and health status are monitored in real-time via the header status indicator.
 
