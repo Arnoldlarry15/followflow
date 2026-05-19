@@ -34,6 +34,10 @@ interface LlmStatus {
     model: string;
     configured: boolean;
   };
+  groq: {
+    model: string;
+    configured: boolean;
+  };
 }
 
 interface ProviderHealthState {
@@ -120,6 +124,17 @@ function getProviderHealthState(provider: LLMProvider, status: LlmStatus | null)
       return status?.gemini.configured
         ? {
             label: `Configured: ${status.gemini.model}`,
+            tone: 'text-green-700 bg-green-50 border-green-100',
+          }
+        : {
+            label: 'API key missing',
+            tone: 'text-amber-700 bg-amber-50 border-amber-100',
+          };
+
+    case 'groq':
+      return status?.groq.configured
+        ? {
+            label: `Configured: ${status.groq.model}`,
             tone: 'text-green-700 bg-green-50 border-green-100',
           }
         : {
@@ -393,6 +408,7 @@ export default function App() {
                 <option value="openai">{LLM_PROVIDER_LABELS.openai}</option>
                 <option value="anthropic">{LLM_PROVIDER_LABELS.anthropic}</option>
                 <option value="gemini">{LLM_PROVIDER_LABELS.gemini}</option>
+                <option value="groq">{LLM_PROVIDER_LABELS.groq}</option>
               </select>
             </div>
             <button

@@ -13,7 +13,7 @@ FollowFlow is a clean, operational workspace designed for non-technical users an
 
 ## Features
 
-- **Multi-Provider AI Orchestration** — Seamless switching between Ollama (local), OpenAI, Anthropic, and Gemini with live provider health monitoring
+- **Multi-Provider AI Orchestration** — Seamless switching between Ollama (local), OpenAI, Anthropic, Gemini, and Groq with live provider health monitoring
 - **Lead & Customer Management** — Unified workspace for tracking opportunities, conversations, and follow-ups with rich metadata
 - **Responsive Real-time UI** — Animated interactions powered by motion/react, Tailwind CSS, and Lucide icons
 - **Dynamic Data Workspace** — Lead detail views, kanban-style boards, customer lists, and grant opportunity tracking
@@ -109,8 +109,21 @@ FollowFlow supports multiple AI backends:
 - **OpenAI** — Cloud-based, requires API key
 - **Anthropic** — Cloud-based Claude models, requires API key
 - **Gemini** — Google's Gemini API, requires API key
+- **Groq** — Cloud-based fast inference, requires API key
 
 Provider configuration and health status are monitored in real-time via the header status indicator.
+
+### Groq setup (including Vercel deployment)
+
+To run FollowFlow with Groq in a deployed environment:
+
+1. Create a Groq API key in your Groq account.
+2. Set these environment variables:
+   - `GROQ_API_KEY` (required)
+   - `GROQ_MODEL` (optional, default: `llama-3.1-8b-instant`)
+3. In Vercel, add the variables in **Project Settings → Environment Variables** for the environments you use (Preview/Production).
+4. Redeploy after saving env vars.
+5. In the app, choose **Groq (API)** from the LLM selector (or it will auto-default to Groq when no OpenAI/Anthropic/Gemini keys are set and `GROQ_API_KEY` is present).
 
 ## Development
 
