@@ -37,7 +37,7 @@ npm install
 
 # Start development server
 npm run dev
-# → http://localhost:5173
+# → http://localhost:3000 (or `PORT` from `.env`)
 
 # Type checking
 npm run lint
@@ -70,7 +70,12 @@ followflow/
 │   └── index.css             # Global styles
 ├── public/                   # Static assets
 │   └── follow_flow_logo_3x.png
-├── server.ts                 # Development/production server
+├── api/                      # Vercel API functions
+│   ├── draft.ts              # POST /api/draft
+│   └── llm-status.ts         # GET /api/llm-status
+├── lib/
+│   └── llm.ts                # Shared LLM/provider logic
+├── server.ts                 # Local development server
 ├── vite.config.ts            # Vite configuration
 ├── tsconfig.json             # TypeScript configuration
 ├── index.html                # HTML entry point
@@ -90,7 +95,7 @@ followflow/
 | **Styling** | Tailwind CSS | Utility-first responsive design |
 | **Animation** | motion/react | Smooth, performant transitions |
 | **Icons** | lucide-react | Consistent iconography system |
-| **Server** | Express (embedded) | Development and production server |
+| **Server** | Express + Vercel Functions | Local dev server and deployed API routes |
 
 ### Data Flow
 
@@ -122,8 +127,10 @@ To run FollowFlow with Groq in a deployed environment:
    - `GROQ_API_KEY` (required)
    - `GROQ_MODEL` (optional, default: `llama-3.1-8b-instant`)
 3. In Vercel, add the variables in **Project Settings → Environment Variables** for the environments you use (Preview/Production).
-4. Redeploy after saving env vars.
-5. In the app, choose **Groq (API)** from the LLM selector (or it will auto-default to Groq when no OpenAI/Anthropic/Gemini keys are set and `GROQ_API_KEY` is present).
+4. Vercel deploys the backend from `api/llm-status.ts` and `api/draft.ts`, so no separate long-running Express server is required in production.
+5. Redeploy after saving env vars.
+6. Verify `https://<your-domain>/api/llm-status` returns JSON and `groq.configured` is `true`.
+7. In the app, choose **Groq (API)** from the LLM selector (or it will auto-default to Groq when no OpenAI/Anthropic/Gemini keys are set and `GROQ_API_KEY` is present).
 
 ## Development
 
