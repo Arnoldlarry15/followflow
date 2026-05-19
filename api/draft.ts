@@ -79,7 +79,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
 
     console.error("Draft generation error:", error);
     sendJson(response, 500, {
-      error: "Failed to generate draft.",
+      error: error instanceof Error ? error.message : "Failed to generate draft.",
     });
   }
 }
