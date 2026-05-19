@@ -126,6 +126,7 @@ To run FollowFlow with Groq in a deployed environment:
 2. Set these environment variables:
    - `GROQ_API_KEY` (required; backend also accepts `GROW_API_KEY`, `GROQ_KEY`, and `VITE_GROQ_API_KEY` aliases)
    - `GROQ_MODEL` (optional, default: `llama-3.1-8b-instant`)
+   - `GROQ_TIMEOUT_MS` (optional, default: `30000`)
 3. In Vercel, add the variables in **Project Settings → Environment Variables** for the environments you use (Preview/Production).
 4. Vercel deploys the backend from `api/llm-status.ts` and `api/draft.ts`, so no separate long-running Express server is required in production.
 5. Redeploy after saving env vars.
