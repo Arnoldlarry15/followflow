@@ -275,19 +275,35 @@ async function generateWithOllama(prompt: string, config: ProviderConfig): Promi
 }
 
 function resolveProvider(provider: LlmProvider | undefined, config: ProviderConfig): LlmProvider {
-  if (provider === "openai" && config.hasOpenAiKey) {
+  if (!provider) {
+    return config.defaultProvider;
+  }
+
+  if (provider === "openai") {
+    if (!config.hasOpenAiKey) {
+      throw new Error("OpenAI is not configured. Add OPENAI_API_KEY to use this provider.");
+    }
     return "openai";
   }
 
-  if (provider === "anthropic" && config.hasAnthropicKey) {
+  if (provider === "anthropic") {
+    if (!config.hasAnthropicKey) {
+      throw new Error("Anthropic is not configured. Add ANTHROPIC_API_KEY to use this provider.");
+    }
     return "anthropic";
   }
 
-  if (provider === "gemini" && config.hasGeminiKey) {
+  if (provider === "gemini") {
+    if (!config.hasGeminiKey) {
+      throw new Error("Gemini is not configured. Add GEMINI_API_KEY to use this provider.");
+    }
     return "gemini";
   }
 
-  if (provider === "groq" && config.hasGroqKey) {
+  if (provider === "groq") {
+    if (!config.hasGroqKey) {
+      throw new Error("Groq is not configured. Add GROQ_API_KEY to use this provider.");
+    }
     return "groq";
   }
 
@@ -295,7 +311,7 @@ function resolveProvider(provider: LlmProvider | undefined, config: ProviderConf
     return "ollama";
   }
 
-  return config.defaultProvider;
+  throw new Error(`Unsupported LLM provider: ${String(provider)}`);
 }
 
 function getModelForProvider(provider: LlmProvider, config: ProviderConfig): string {
