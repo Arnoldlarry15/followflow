@@ -1,4 +1,4 @@
-import { getLlmStatus } from "../lib/llm";
+import { getLlmStatus } from "../lib/llm.js";
 
 interface ApiRequest {
   method?: string;

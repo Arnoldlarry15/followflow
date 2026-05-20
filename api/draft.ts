@@ -1,4 +1,4 @@
-import { generateDraft, isConfigurationError, isLlmProvider } from "../lib/llm";
+import { generateDraft, isConfigurationError, isLlmProvider } from "../lib/llm.js";
 
 interface ApiRequest {
   method?: string;

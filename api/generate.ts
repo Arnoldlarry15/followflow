@@ -1,1 +1,1 @@
-export { default } from "./draft";
+export { default } from "./draft.js";
