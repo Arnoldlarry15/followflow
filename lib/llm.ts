@@ -78,14 +78,14 @@ function getProviderConfig(): ProviderConfig {
 
   let defaultProvider: LlmProvider = "ollama";
 
-  if (hasOpenAiKey) {
+  if (hasGroqKey) {
+    defaultProvider = "groq";
+  } else if (hasOpenAiKey) {
     defaultProvider = "openai";
   } else if (hasAnthropicKey) {
     defaultProvider = "anthropic";
   } else if (hasGeminiKey) {
     defaultProvider = "gemini";
-  } else if (hasGroqKey) {
-    defaultProvider = "groq";
   }
 
   return {

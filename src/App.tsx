@@ -154,7 +154,7 @@ export default function App() {
   const STATUS_POLL_INTERVAL_MS = 30000;
   const [view, setView] = useState<ViewMode>('inbox');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const [llmProvider, setLlmProvider] = useState<LLMProvider>('ollama');
+  const [llmProvider, setLlmProvider] = useState<LLMProvider>('groq');
   const [llmStatus, setLlmStatus] = useState<LlmStatus | null>(null);
   const [isStatusLoading, setIsStatusLoading] = useState(false);
   const [leads, setLeads] = useState<Lead[]>(initialLeads);
