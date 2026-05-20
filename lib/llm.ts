@@ -1,5 +1,3 @@
-import { GoogleGenAI } from "@google/genai";
-
 export type LlmProvider = "ollama" | "openai" | "anthropic" | "gemini" | "groq";
 const DEFAULT_GROQ_TIMEOUT_MS = 30000;
 
@@ -214,6 +212,7 @@ async function generateWithGemini(prompt: string, config: ProviderConfig): Promi
     throw new Error("Gemini is not configured. Add GEMINI_API_KEY to use this provider.");
   }
 
+  const { GoogleGenAI } = await import("@google/genai");
   const client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   const response = await client.models.generateContent({
     model: config.geminiModel,
