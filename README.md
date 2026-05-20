@@ -133,6 +133,16 @@ To run FollowFlow with Groq in a deployed environment:
 6. Verify `https://<your-domain>/api/llm-status` returns JSON and `groq.configured` is `true`.
 7. In the app, choose **Groq (API)** from the LLM selector (or it will auto-default to Groq when no OpenAI/Anthropic/Gemini keys are set and `GROQ_API_KEY` is present).
 
+### Vercel checklist
+
+If you are deploying FollowFlow to Vercel, use this exact setup:
+
+1. Go to **Project Settings → Environment Variables**.
+2. Add `GROQ_API_KEY` for `Production`, `Preview`, and `Development`.
+3. Optionally add `GROQ_MODEL` and `GROQ_TIMEOUT_MS` if you want to override defaults.
+4. Redeploy the project after saving the variables.
+5. Confirm the deployed app can load `/api/llm-status` and then generate a draft from the lead panel.
+
 ## Development
 
 ### Hot Module Replacement (HMR)
