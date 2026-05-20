@@ -1,4 +1,4 @@
-import { generateDraft, isLlmProvider } from "../lib/llm";
+import { generateDraft, isConfigurationError, isLlmProvider } from "../lib/llm";
 
 interface ApiRequest {
   method?: string;
@@ -78,7 +78,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     }
 
     console.error("Draft generation error:", error);
-    sendJson(response, 500, {
+    sendJson(response, isConfigurationError(error) ? 503 : 500, {
       error: error instanceof Error ? error.message : "Failed to generate draft.",
     });
   }

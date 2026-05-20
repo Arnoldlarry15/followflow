@@ -29,6 +29,19 @@ function getEnvValue(...names: string[]): string | undefined {
   return undefined;
 }
 
+function isVercelDeployment(): boolean {
+  return process.env.VERCEL === "1" || process.env.VERCEL === "true";
+}
+
+function isLocalOllamaHost(baseUrl: string): boolean {
+  try {
+    const parsedUrl = new URL(baseUrl);
+    return parsedUrl.hostname === "localhost" || parsedUrl.hostname === "127.0.0.1" || parsedUrl.hostname === "0.0.0.0";
+  } catch {
+    return false;
+  }
+}
+
 export interface LlmStatusResponse {
   defaultProvider: LlmProvider;
   ollama: {
@@ -379,6 +392,10 @@ function getModelForProvider(provider: LlmProvider, config: ProviderConfig): str
 }
 
 async function checkOllamaStatus(baseUrl: string): Promise<{ reachable: boolean; models: string[] }> {
+  if (isVercelDeployment() && isLocalOllamaHost(baseUrl)) {
+    return { reachable: false, models: [] };
+  }
+
   try {
     const response = await fetch(`${baseUrl}/api/tags`, {
       signal: AbortSignal.timeout(3000),
@@ -407,35 +424,72 @@ export function isLlmProvider(value: unknown): value is LlmProvider {
 }
 
 export async function getLlmStatus(): Promise<LlmStatusResponse> {
-  const config = getProviderConfig();
-  const ollama = await checkOllamaStatus(config.ollamaBaseUrl);
+  try {
+    const config = getProviderConfig();
+    const ollama = await checkOllamaStatus(config.ollamaBaseUrl);
 
-  return {
-    defaultProvider: config.defaultProvider,
-    ollama: {
-      baseUrl: config.ollamaBaseUrl,
-      model: config.ollamaModel,
-      reachable: ollama.reachable,
-      modelAvailable: ollama.models.includes(config.ollamaModel),
-      installedModels: ollama.models,
-    },
-    openai: {
-      model: config.openAiModel,
-      configured: config.hasOpenAiKey,
-    },
-    anthropic: {
-      model: config.anthropicModel,
-      configured: config.hasAnthropicKey,
-    },
-    gemini: {
-      model: config.geminiModel,
-      configured: config.hasGeminiKey,
-    },
-    groq: {
-      model: config.groqModel,
-      configured: config.hasGroqKey,
-    },
-  };
+    return {
+      defaultProvider: config.defaultProvider,
+      ollama: {
+        baseUrl: config.ollamaBaseUrl,
+        model: config.ollamaModel,
+        reachable: ollama.reachable,
+        modelAvailable: ollama.models.includes(config.ollamaModel),
+        installedModels: ollama.models,
+      },
+      openai: {
+        model: config.openAiModel,
+        configured: config.hasOpenAiKey,
+      },
+      anthropic: {
+        model: config.anthropicModel,
+        configured: config.hasAnthropicKey,
+      },
+      gemini: {
+        model: config.geminiModel,
+        configured: config.hasGeminiKey,
+      },
+      groq: {
+        model: config.groqModel,
+        configured: config.hasGroqKey,
+      },
+    };
+  } catch {
+    return {
+      defaultProvider: "ollama",
+      ollama: {
+        baseUrl: process.env.OLLAMA_BASE_URL || "http://127.0.0.1:11434",
+        model: process.env.OLLAMA_MODEL || "qwen2.5:7b",
+        reachable: false,
+        modelAvailable: false,
+        installedModels: [],
+      },
+      openai: {
+        model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+        configured: Boolean(process.env.OPENAI_API_KEY),
+      },
+      anthropic: {
+        model: process.env.ANTHROPIC_MODEL || "claude-3-5-haiku-latest",
+        configured: Boolean(process.env.ANTHROPIC_API_KEY),
+      },
+      gemini: {
+        model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+        configured: Boolean(process.env.GEMINI_API_KEY),
+      },
+      groq: {
+        model: process.env.GROQ_MODEL || "llama-3.1-8b-instant",
+        configured: Boolean(process.env.GROQ_API_KEY),
+      },
+    };
+  }
+}
+
+export function isConfigurationError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return /not configured|no LLM provider is configured/i.test(error.message);
 }
 
 export async function generateDraft(input: {

@@ -27,7 +27,31 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     sendJson(response, 200, await getLlmStatus());
   } catch (error) {
     console.error("LLM status error:", error);
-    sendJson(response, 500, {
+    sendJson(response, 200, {
+      defaultProvider: "ollama",
+      ollama: {
+        baseUrl: process.env.OLLAMA_BASE_URL || "http://127.0.0.1:11434",
+        model: process.env.OLLAMA_MODEL || "qwen2.5:7b",
+        reachable: false,
+        modelAvailable: false,
+        installedModels: [],
+      },
+      openai: {
+        model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+        configured: Boolean(process.env.OPENAI_API_KEY),
+      },
+      anthropic: {
+        model: process.env.ANTHROPIC_MODEL || "claude-3-5-haiku-latest",
+        configured: Boolean(process.env.ANTHROPIC_API_KEY),
+      },
+      gemini: {
+        model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+        configured: Boolean(process.env.GEMINI_API_KEY),
+      },
+      groq: {
+        model: process.env.GROQ_MODEL || "llama-3.1-8b-instant",
+        configured: Boolean(process.env.GROQ_API_KEY),
+      },
       error: "Failed to load LLM status.",
     });
   }
