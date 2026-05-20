@@ -67,7 +67,6 @@ function getProviderConfig(): ProviderConfig {
   const hasGeminiKey = Boolean(process.env.GEMINI_API_KEY);
   const groqApiKey = getEnvValue(
     "GROQ_API_KEY",
-    "GROW_API_KEY",
     "GROQ_KEY",
     "VITE_GROQ_API_KEY",
     "NEXT_PUBLIC_GROQ_API_KEY",
@@ -228,7 +227,7 @@ async function generateWithGemini(prompt: string, config: ProviderConfig): Promi
 async function generateWithGroq(prompt: string, config: ProviderConfig): Promise<string> {
   if (!config.groqApiKey) {
     throw new Error(
-      "Groq is not configured. Add GROQ_API_KEY (or GROW_API_KEY/GROQ_KEY/VITE_GROQ_API_KEY) to use this provider.",
+      "Groq is not configured. Add GROQ_API_KEY (or GROQ_KEY/VITE_GROQ_API_KEY/NEXT_PUBLIC_GROQ_API_KEY) to use this provider.",
     );
   }
 
@@ -355,7 +354,7 @@ function resolveProvider(provider: LlmProvider | undefined, config: ProviderConf
   if (provider === "groq") {
     if (!config.hasGroqKey) {
       throw new Error(
-        "Groq is not configured. Add GROQ_API_KEY (or GROW_API_KEY/GROQ_KEY/VITE_GROQ_API_KEY) to use this provider.",
+        "Groq is not configured. Add GROQ_API_KEY (or GROQ_KEY/VITE_GROQ_API_KEY/NEXT_PUBLIC_GROQ_API_KEY) to use this provider.",
       );
     }
     return "groq";
